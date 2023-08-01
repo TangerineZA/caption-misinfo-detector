@@ -1,6 +1,10 @@
 import moviepy.editor as mp
 import speech_recognition as sr
 import keras_ocr
+import numpy as np
+from scipy import spatial
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
 
 from pydub import AudioSegment
 
@@ -38,9 +42,12 @@ class caption_guided_visual_representation_learning:
         self.time_per_frame_ms : float = 1 / self.framerate
         self.total_frames : int = self.video.reader.nframes
         self.video_frames_segemented : list = [] # used to store sparsely collected video frames
+        self.video_ocr_captions : list = []
         self.audio_segments : list = []
         self.audio_segment_times_seconds : list = [] # to keep track of which frame each audio segment is related to
+        self.audio_captions : list = []
         self.combined_captions : list = [] # combined captions from video OCR and audio recognition
+        self.combined_embeddings : list = [] # contains 2d array of GloVe embeddings - each successive entry is for an individual frame, so [i][j] will have the embedding of word j from frame i
     
 
     def current_position_in_audio(self, current_segment):
@@ -73,23 +80,45 @@ class caption_guided_visual_representation_learning:
             current_time_seconds = current_time_seconds + TIME_STEP
 
         # SECTION: GET SPEECH/MEANING FROM EACH AUDIO SEGMENT
-        
-
-        pass
+        r = sr.Recognizer()
+        for segment in self.audio_segments:
+            with sr.AudioSource(segment) as source:
+                audio_text = r.record(source)
+            text = r.recognize_google(audio_text)
+            self.audio_captions.append(text)
 
     def extract_video_captions(self) -> list:
         for current_time_seconds in self.audio_segment_times_seconds:
             next_frame = self.video.get_frame(current_time_seconds)
 
-        # do OCR
+        # do OCR TODO FIX
+        pipeline = keras_ocr.pipeline.Pipeline()
+        predictions = pipeline.recognize(self.video_frames_segemented)
+        self.video_ocr_captions.append(predictions)
 
-        # add to caption object
+
+    def encode_captions(self):
+        # let's put both caption forms into one list for now, following the paper instructions
+        combined_caption_list : list = []
+        for i in len(self.video_ocr_captions):
+            audio = self.audio_captions[i]
+            visual = self.video_ocr_captions[i]
+            combined_entry : list = []
+            combined_entry.append(visual, audio)
+            combined_caption_list.append(combined_entry)
 
 
-    def encode_captions():
         # First transform each word in the word sequence to a 
         # fixed-length vector representation with the pre-trained
         # GloVe embedding
+        embedding_dict : dict = load_glove_dict()
+
+        embeddings_2d_array : list = []
+        for caption_list in self.combined_captions:
+            frame_embedding = get_vectors_for_frame_caption(embedding_dict, caption_list)
+        self.combined_embeddings = embeddings_2d_array
+
+        
 
         # Further develop a bidirectional gated recurrent unit (BiGRU)
         # encoder to encode the semantic information in each word 
@@ -116,3 +145,28 @@ class visual_speech_coattentive_information_fusion:
 
 class supervised_misleading_video_detection:
     pass
+
+def load_glove_dict() -> dict :
+    i = 0
+    embeddings_dict = {}
+    with open("glove.42B.300d.txt", 'r') as f:
+        for line in f:
+            values = line.split()
+            word = values[0]
+            vector = np.asarray(values[1:], "float32")
+            embeddings_dict[word] = vector
+
+            i = i + 1
+            if 1 % 10 == 0:
+                print("Loaded line " + i + " from embeddings")
+    return embeddings_dict
+
+def get_vectors_for_frame_caption(embeddings_dict : dict, frame_captions_list : list) -> list:
+    embeddings : list = []
+    for word in frame_captions_list:
+        try:
+            vector_representation = embeddings_dict[word]
+            embeddings.append(vector_representation)
+        except:
+            pass
+    return embeddings
