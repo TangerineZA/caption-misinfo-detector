@@ -6,11 +6,21 @@ from scipy import spatial
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 
+# BiGRU imports
+import time
+import pandas as pd
+import tensorflow as tf
+import itertools as it
+from sklearn.model_selection import train_test_split
+
 from pydub import AudioSegment
 
 SKIP_FRAMES = 4
 TIME_STEP = 0.5     # seconds between captured frames
 AUDIO_DELTA = 1000  # milliseconds around frame capture to capture audio
+SEED = 26032013
+
+np.random.seed()
 
 class caption_guided_visual_representation_learning:
 
@@ -123,7 +133,9 @@ class caption_guided_visual_representation_learning:
         # Further develop a bidirectional gated recurrent unit (BiGRU)
         # encoder to encode the semantic information in each word 
         # embedding from both directions of the word sequence
-        pass
+
+        # TEMP SKIP #TODO if want exact replica of Shang et al.
+        
 
     def get_visual_frame_representation():
         # caption-guided design starts with identifying a set of
@@ -144,7 +156,30 @@ class visual_speech_coattentive_information_fusion:
     pass
 
 class supervised_misleading_video_detection:
-    pass
+    
+
+    def __init__(self, encoded_data : list) -> None:
+        self.encoded_data_np = np.array(encoded_data)
+
+        model = tf.keras.Sequential([
+            tf.keras.layers.Dense(activation="relu"),
+            tf.keras.layers.Dense(activation="relu"),
+            tf.keras.layers.Softmax()
+        ])
+
+        # TODO - should go from_logits, but softmax layer already part of model
+        loss = tf.keras.losses.SparseCategoricalCrossentropy()
+        optimiser = tf.keras.optimizers.Adam(0.001)
+
+        model.compile(
+            optimizer=optimiser,
+            loss=loss
+        )
+    
+    def train(test_data, train_data):
+        pass
+
+
 
 def load_glove_dict() -> dict :
     i = 0
