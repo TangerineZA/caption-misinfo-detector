@@ -18,3 +18,4 @@ mini-model/vosk-model-small-en-us-0.15/ivector/online_cmvn.conf
 mini-model/vosk-model-small-en-us-0.15/ivector/global_cmvn.stats
 mini-model/vosk-model-small-en-us-0.15/ivector/final.mat
 mini-model/__pycache__/helpers.cpython-310.pyc
+*.jpg
