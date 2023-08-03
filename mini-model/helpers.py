@@ -1,9 +1,13 @@
 from transformers import pipeline
 import os
 import cv2
-import speech_recognition as sr
 from pydub import AudioSegment
 from vosk import Model, KaldiRecognizer
+import wave
+import json
+import math
+from pydub.silence import split_on_silence
+import speech_recognition as sr
 
 # TODO make video-loader that split all videos into frames, to pass into image-loader and get captions from
 
@@ -98,33 +102,126 @@ class Captioner:
         return caption
 
 class Audio_transcriber:
-    def __init__(self, vide_folder : str = None) -> None:
-        self.video_folder = vide_folder
+    def __init__(self, video_folder : str = None) -> None:
+        self.video_folder = video_folder
 
     def transcribe_video_folder(self, folder_name):
-        filenames = [f for f in os.scandir(folder_name) if os.path.isfile(os.path.join(folder_name, f))]
+        print("Transcribing video folder: " + folder_name)
+        filenames = [f for f in os.scandir(folder_name) if os.path.isfile(f)]
+        print("Filenames: ")
+        print(filenames)
         audio_captions_dict : dict = dict()
+
+        print("Make folders and save audio")
         for filename in filenames:
-            text = self.transcribe_video(filename)
+            video_file = filename
+            audio_file_folder_name = filename.name + "_audio"
+            audio_folder_path = os.path.join(folder_name, audio_file_folder_name)
+            try:
+                os.mkdir(audio_folder_path)
+            except OSError as e:
+                print(e)
+            print("Storing in " + audio_folder_path)
+
+            audio : AudioSegment = AudioSegment.from_file(video_file, format="mp4")
+            print("Transcribing video " + str(video_file))
+            audio.set_channels(1).set_frame_rate(16000).set_sample_width(2)
+
+            filepath_and_name = os.path.join(audio_folder_path, "audio.wav")
+            audio.export(filepath_and_name, format="wav")
+            
+            text = self.transcribe_using_cloud(filepath_and_name, audio_folder_path)
             audio_captions_dict[filename] = text
 
-    # TODO fix file reading issues
-    def transcribe_video(video_file: str) -> str:
-        video = AudioSegment.from_file(video_file, format="mp4")
-        audio = video.set_channels(1).set_frame_rate(16000).set_sample_width(2)
-        # TODO fix the path
-        audio.export("audio.wav", format="wav")
+
+
+    def transcribe_video(self, audio_file: str, output_folder : str) -> str:
+        wf = wave.open(audio_file, 'r')
 
         # get transcriptions going
-        model = Model(r"vosk-model-small-en-us-0.15")
-        recogniser = KaldiRecognizer(model, 16000)
-        # read audio data into "data" TODO
-        data = None
-        if recogniser.AcceptWaveform(data):
-            text = recogniser.Result()
-            return text
-        else:
-            return None
+        model = Model(r"vosk-model-en-us-0.22")
+        recognizer = KaldiRecognizer(model, wf.getframerate())
+        recognizer.SetWords(True)
 
+        textResults = []
+        results = ""
 
+        print("Model and recogniser initialised...")
 
+        while True:
+            data = wf.readframes(4096)
+            if len(data) == 0:
+                break
+            if recognizer.AcceptWaveform(data):
+                recognizerResult = recognizer.Result()
+                print(recognizerResult)
+                results = results + recognizerResult
+                # convert the recognizerResult string into a dictionary  
+                resultDict = json.loads(recognizerResult)
+                # save the 'text' value from the dictionary into a list
+                textResults.append(resultDict.get("text", ""))
+
+        return results
+    
+    def transcribe_using_cloud(self, audio_file, output_folder):
+        r = sr.Recognizer()
+        sound = AudioSegment.from_file(audio_file)
+        # split audio
+        major_chunks = self.split_seconds(sound, 50)
+        print("Audio split!")
+
+        chunks = []
+        for major_chunk in major_chunks:
+            for sub_chunk in split_on_silence(major_chunk,
+            # experiment with this value for your target audio file
+            min_silence_len = 500,
+            # adjust this per requirement
+            silence_thresh = major_chunk.dBFS-14,
+            # keep the silence for 1 second, adjustable as well
+            keep_silence=500,):
+                chunks.append(sub_chunk)
+
+        # for chunk in chunks:
+            # print(type(chunk))
+
+        if not os.path.isdir(output_folder):
+            os.mkdir(output_folder)
+            print("Made folder " + output_folder)
+        whole_text = ""
+        for i, audio_chunk in enumerate(chunks, start=1):
+            # print(type(audio_chunk))
+            # export audio chunk and save it in
+            # the `folder_name` directory.
+            chunk_filename = os.path.join(output_folder, f"chunk{i}.wav")
+            audio_chunk.export(chunk_filename, format="wav")
+            # print("Exported " + chunk_filename + " to " + output_folder)
+            # recognize the chunk
+            with sr.AudioFile(chunk_filename) as source:
+                    audio_listened = r.record(source)
+                    # try converting it to text
+                    try:
+                        # print("Doing recognition!")
+                        text = r.recognize_google(audio_listened)
+                        # print(text)
+                    except sr.UnknownValueError as e:
+                        print("Error:", str(e))
+                    else:
+                        text = f"{text.capitalize()}. "
+                        print(chunk_filename, ":", text)
+                        whole_text += text
+                        pass
+        # return the text for all chunks detected
+        return whole_text
+    
+    def split_seconds(self, audiofile: AudioSegment, max_seconds):
+        max_milliseconds = max_seconds * 1000
+        num_segments = math.ceil(len(audiofile) / max_milliseconds)
+        chunks = []
+
+        current_ms = 0
+        for i in range (0, num_segments):
+            chunk = audiofile[current_ms:current_ms+max_milliseconds]
+            chunks.append(chunk)
+            current_ms = current_ms + max_milliseconds
+
+        return chunks
