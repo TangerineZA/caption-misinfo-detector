@@ -8,6 +8,9 @@ import json
 import math
 from pydub.silence import split_on_silence
 import speech_recognition as sr
+import numpy as np
+import tensorflow as tf
+import gensim
 
 # TODO make video-loader that split all videos into frames, to pass into image-loader and get captions from
 
@@ -225,3 +228,28 @@ class Audio_transcriber:
             current_ms = current_ms + max_milliseconds
 
         return chunks
+    
+
+class fusion_helper:
+    def __init__(self) -> None:
+        pass
+
+    def get_dicts_text(self, dict1 : dict, dict2 : dict) -> list:
+        combined_values : list = []
+        combined_values.append(dict1.values(), dict2.values())
+        return combined_values
+    
+    def get_embeddings_from_wordlist(self, wordlist : list) -> list:
+        vectorlist = []
+        word2vector = {}
+        with open('glove.42B.300d.txt') as file:
+            for line in file:
+                list_of_values = line.split()
+                word = list_of_values[0]
+                vector_of_word = np.asarray(list_of_values[1:], dtype='float32')
+                word2vector[word] = vector_of_word
+
+        for word in wordlist:
+            vectorlist.append(word2vector[word])
+
+        return vectorlist
