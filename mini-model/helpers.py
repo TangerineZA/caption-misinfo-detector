@@ -232,7 +232,8 @@ class Audio_transcriber:
 
 class fusion_helper:
     def __init__(self) -> None:
-        pass
+        self.embedding_dimension = 300
+        self.filepath = 'glove.42B.300d.txt'
 
     def get_dicts_text(self, dict1 : dict, dict2 : dict) -> list:
         combined_values : list = []
@@ -240,16 +241,19 @@ class fusion_helper:
         return combined_values
     
     def get_embeddings_from_wordlist(self, wordlist : list) -> list:
-        vectorlist = []
-        word2vector = {}
-        with open('glove.42B.300d.txt') as file:
-            for line in file:
-                list_of_values = line.split()
-                word = list_of_values[0]
-                vector_of_word = np.asarray(list_of_values[1:], dtype='float32')
-                word2vector[word] = vector_of_word
+        word_dictionary : dict = dict.fromkeys(wordlist)
+        vocab_size = len(word_dictionary) + 1
+        embedding_matrix_vocab = np.zeros((
+            vocab_size, self.embedding_dimension
+        ))
 
-        for word in wordlist:
-            vectorlist.append(word2vector[word])
-
-        return vectorlist
+        with open(self.filepath, encoding='utf8') as f:
+            for line in f:
+                word, *vector = line.split()
+                if word in word_dictionary:
+                    idx = word_dictionary[word]
+                    embedding_matrix_vocab[idx] = np.array(
+                        vector, dtype=np.float32
+                        )[:self.embedding_dimension]
+        return embedding_matrix_vocab
+                    
