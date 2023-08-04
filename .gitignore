@@ -55,3 +55,8 @@ mini-model/vosk-model-en-us-0.22/conf/ivector.conf
 mini-model/vosk-model-en-us-0.22/am/tree
 mini-model/vosk-model-en-us-0.22/am/final.mdl
 mini-model/vosk-model-en-us-0.22.zip
+mini-model/glove.6B.50d.txt
+glove.6B/glove.6B.300d.txt
+glove.6B/glove.6B.200d.txt
+glove.6B/glove.6B.100d.txt
+glove.6B/glove.6B.50d.txt

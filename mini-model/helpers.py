@@ -89,8 +89,9 @@ class Image_loader:
     def get_captions(self) -> list:
         print("Start image get captions")
         for filename in os.listdir(self.folder_name):
-            f = os.path.join(self.folder_name, filename)
-            self.captions.append(self.captioner.get_caption(f))
+            if "jpg" in filename:
+                f = os.path.join(self.folder_name, filename)
+                self.captions.append(self.captioner.get_caption(f))
         return self.captions
 
 class Captioner:
@@ -135,6 +136,8 @@ class Audio_transcriber:
             
             text = self.transcribe_using_cloud(filepath_and_name, audio_folder_path)
             audio_captions_dict[filename] = text
+        
+        return audio_captions_dict
 
 
 
@@ -205,15 +208,13 @@ class Audio_transcriber:
                     try:
                         # print("Doing recognition!")
                         text = r.recognize_google(audio_listened)
+                        print(chunk_filename, ":", text)
+                        whole_text += ' ' + text
                         # print(text)
                     except sr.UnknownValueError as e:
                         print("Error:", str(e))
-                    else:
-                        text = f"{text.capitalize()}. "
-                        print(chunk_filename, ":", text)
-                        whole_text += text
-                        pass
         # return the text for all chunks detected
+        print("Returning whole text!" + whole_text)
         return whole_text
     
     def split_seconds(self, audiofile: AudioSegment, max_seconds):
@@ -233,7 +234,7 @@ class Audio_transcriber:
 class fusion_helper:
     def __init__(self) -> None:
         self.embedding_dimension = 300
-        self.filepath = 'glove.42B.300d.txt'
+        self.filepath = 'glove.6B.50d.txt'
 
     def get_dicts_text(self, dict1 : dict, dict2 : dict) -> list:
         combined_values : list = []
