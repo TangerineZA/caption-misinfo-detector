@@ -231,7 +231,7 @@ class Audio_transcriber:
         return chunks
     
 
-class fusion_helper:
+class Fusion_helper:
     def __init__(self) -> None:
         self.embedding_dimension = 300
         self.filepath = 'glove.6B.50d.txt'
@@ -242,6 +242,7 @@ class fusion_helper:
         return combined_values
     
     def get_embeddings_from_wordlist(self, wordlist : list) -> list:
+        print("Getting embeddings from wordlist")
         word_dictionary : dict = dict.fromkeys(wordlist)
         vocab_size = len(word_dictionary) + 1
         embedding_matrix_vocab = np.zeros((
@@ -258,3 +259,36 @@ class fusion_helper:
                         )[:self.embedding_dimension]
         return embedding_matrix_vocab
                     
+    def build_embedding_layer(self, embedding_matrix, num_tokens) -> tf.keras.layers.Embedding:
+        print("Building embedding layer")
+        embedding_layer = tf.keras.layers.Embedding(
+            num_tokens,
+            self.embedding_dimension,
+            embeddings_initializer = tf.keras.initializers.Constant(embedding_matrix),
+            trainable = False
+        )
+        return embedding_layer
+    
+    def build_embedding_layer_from_wordlist(self, wordlist : list) -> tf.keras.layers.Embedding:
+        print("Building embedding layer from wordlist")
+        embeddings = self.get_embeddings_from_wordlist(wordlist)
+        embedding_layer = self.build_embedding_layer(embedding_matrix=embeddings, num_tokens = (len(wordlist) + 1))
+        return embedding_layer
+    
+    def get_full_vocabulary(self, dicts : list) -> list:
+        print("Getting full vocabulary")
+        vocab : list = []
+        for dict in dicts:
+            wordlist = list(dict.values())
+            vocab.extend(wordlist)
+        return vocab
+
+    def build_vectorise_layer_from_wordlist(self, wordlist : list) -> tf.keras.layers.TextVectorization:
+        print("Building vectorise layer")
+        layer = tf.keras.layers.TextVectorization(
+            max_tokens = (len(wordlist) + 2),
+            output_mode = "int",
+            vocabulary = wordlist,
+            pad_to_max_tokens = True
+        )
+        return layer
