@@ -10,7 +10,7 @@ with open('FVC_text_queries.csv', 'r', encoding='utf8') as f:
         print("Row " + str(i))
         i = i + 1
         try:
-            yt = YouTube(row[1])
+            yt = YouTube(row[1], use_oauth = True, allow_oauth_cache = True)
             path = os.path.join('videos', row[0])
             path2 = os.path.join(path + '.mp4')
             print("Path: " + path2)
