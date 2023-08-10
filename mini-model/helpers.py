@@ -10,17 +10,18 @@ from pydub.silence import split_on_silence
 import speech_recognition as sr
 import numpy as np
 import tensorflow as tf
-import gensim
+from multiprocessing import Pool as ProcessPool
 
 # TODO make video-loader that split all videos into frames, to pass into image-loader and get captions from
 
 # order: use Video_loader to load video and break into frames, then use Image_loader to load images and get back captions.
 
 class Video_loader:
-    def __init__(self, folder_name, frame_frequency = 5) -> None:
+    def __init__(self, folder_name, frame_frequency = 5, num_multithreading_processes = 6) -> None:
         print("Init video loader")
         self.folder_name = folder_name
         self.frame_frequency = frame_frequency
+        self.num_processes = num_multithreading_processes
         # for each video, make a folder with the name of the video, and fill that with frames
 
     def process(self):
@@ -60,6 +61,46 @@ class Video_loader:
             
             cam.release()
             cv2.destroyAllWindows()
+
+    def make_frames_multithreaded(self) -> None:
+        filenames = [filename for filename in os.listdir(self.folder_name)]
+        
+        num_processes = min(len(filenames), self.num_processes)
+        ret = None
+        with ProcessPool(processes = num_processes) as pool:
+            ret = pool.map(self.make_frames_single_video, filenames)
+
+
+    def make_frames_single_video(self, filename):
+        video_file = os.path.join(self.folder_name, filename)
+        video_frames_folder_name = filename + "_images"
+        video_frames_folder_path = os.path.join(self.folder_name, video_frames_folder_name)
+        try:
+            os.mkdir(video_frames_folder_path)
+        except OSError as e:
+            print(e)
+        print("Storing in " + video_frames_folder_path)
+        # split into frames and save them
+        cam = cv2.VideoCapture(video_file)
+        frameno = 0
+        while(True):
+            ret, frame = cam.read()
+            if ret:
+                name = str(frameno) + ".jpg"
+                # cv2.imwrite(name, frame)
+                filepath_and_name = os.path.join(video_frames_folder_path, name)
+                # print("Filepath and name: " + filepath_and_name)
+                if not os.path.isdir(video_frames_folder_path):
+                    print("No such a directory: {}".format(video_frames_folder_path))
+                    exit(1)
+                if frameno % self.frame_frequency == 0:
+                    cv2.imwrite(filepath_and_name, frame)
+                frameno = frameno + 1
+            else:
+                break
+        
+        cam.release()
+        cv2.destroyAllWindows()
     
     def start_image_loading(self) -> dict:
         print("Start image loading")
@@ -77,6 +118,26 @@ class Video_loader:
         
         return captions_dict
 
+    def start_image_loading_multithreaded(self) -> dict:
+        print("Start image loading")
+        list_subfolders_with_paths = [f.path for f in os.scandir(self.folder_name) if f.is_dir()]
+        captions_dict : dict = dict()
+
+        num_processes = min(len(list_subfolders_with_paths), self.num_processes)
+        list_of_tuples = None
+        with ProcessPool(processes = num_processes) as pool:
+            list_of_tuples = pool.map(self.start_image_loading_single, list_subfolders_with_paths)
+        
+        for tuple in list_of_tuples:
+            for name, caption in tuple:
+                captions_dict.setdefault(name, []).append(caption)
+        
+        return captions_dict
+
+    def start_image_loading_single(self, subfolder):
+        image_loader = Image_loader(subfolder)
+        caption = image_loader.get_captions()
+        return (subfolder, caption)
 
 
 class Image_loader:
@@ -118,24 +179,29 @@ class Audio_transcriber:
 
         print("Make folders and save audio")
         for filename in filenames:
-            video_file = filename
-            audio_file_folder_name = filename.name + "_audio"
-            audio_folder_path = os.path.join(folder_name, audio_file_folder_name)
             try:
-                os.mkdir(audio_folder_path)
-            except OSError as e:
-                print(e)
-            print("Storing in " + audio_folder_path)
+                video_file = filename
+                audio_file_folder_name = filename.name + "_audio"
+                audio_folder_path = os.path.join(folder_name, audio_file_folder_name)
+                try:
+                    os.mkdir(audio_folder_path)
+                except OSError as e:
+                    print(e)
+                print("Storing in " + audio_folder_path)
 
-            audio : AudioSegment = AudioSegment.from_file(video_file, format="mp4")
-            print("Transcribing video " + str(video_file))
-            audio.set_channels(1).set_frame_rate(16000).set_sample_width(2)
+                audio : AudioSegment = AudioSegment.from_file(video_file, format="mp4")
+                print("Transcribing video " + str(video_file))
+                audio.set_channels(1).set_frame_rate(16000).set_sample_width(2)
 
-            filepath_and_name = os.path.join(audio_folder_path, "audio.wav")
-            audio.export(filepath_and_name, format="wav")
-            
-            text = self.transcribe_using_cloud(filepath_and_name, audio_folder_path)
-            audio_captions_dict[filename] = text
+                filepath_and_name = os.path.join(audio_folder_path, "audio.wav")
+                audio.export(filepath_and_name, format="wav")
+
+                text = self.transcribe_using_cloud(filepath_and_name, audio_folder_path)
+                audio_captions_dict[filename] = text
+            except:
+                audio_captions_dict[filename] = ""
+                continue
+
         
         return audio_captions_dict
 
@@ -243,7 +309,7 @@ class Fusion_helper:
     
     def get_embeddings_from_wordlist(self, wordlist : list) -> list:
         print("Getting embeddings from wordlist")
-        word_dictionary : dict = dict.fromkeys(wordlist)
+        word_dictionary : dict = dict.fromkeys(wordlist, None)
         vocab_size = len(word_dictionary) + 1
         embedding_matrix_vocab = np.zeros((
             vocab_size, self.embedding_dimension
