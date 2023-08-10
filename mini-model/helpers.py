@@ -179,24 +179,29 @@ class Audio_transcriber:
 
         print("Make folders and save audio")
         for filename in filenames:
-            video_file = filename
-            audio_file_folder_name = filename.name + "_audio"
-            audio_folder_path = os.path.join(folder_name, audio_file_folder_name)
             try:
-                os.mkdir(audio_folder_path)
-            except OSError as e:
-                print(e)
-            print("Storing in " + audio_folder_path)
+                video_file = filename
+                audio_file_folder_name = filename.name + "_audio"
+                audio_folder_path = os.path.join(folder_name, audio_file_folder_name)
+                try:
+                    os.mkdir(audio_folder_path)
+                except OSError as e:
+                    print(e)
+                print("Storing in " + audio_folder_path)
 
-            audio : AudioSegment = AudioSegment.from_file(video_file, format="mp4")
-            print("Transcribing video " + str(video_file))
-            audio.set_channels(1).set_frame_rate(16000).set_sample_width(2)
+                audio : AudioSegment = AudioSegment.from_file(video_file, format="mp4")
+                print("Transcribing video " + str(video_file))
+                audio.set_channels(1).set_frame_rate(16000).set_sample_width(2)
 
-            filepath_and_name = os.path.join(audio_folder_path, "audio.wav")
-            audio.export(filepath_and_name, format="wav")
-            
-            text = self.transcribe_using_cloud(filepath_and_name, audio_folder_path)
-            audio_captions_dict[filename] = text
+                filepath_and_name = os.path.join(audio_folder_path, "audio.wav")
+                audio.export(filepath_and_name, format="wav")
+
+                text = self.transcribe_using_cloud(filepath_and_name, audio_folder_path)
+                audio_captions_dict[filename] = text
+            except:
+                audio_captions_dict[filename] = ""
+                continue
+
         
         return audio_captions_dict
 
@@ -304,7 +309,7 @@ class Fusion_helper:
     
     def get_embeddings_from_wordlist(self, wordlist : list) -> list:
         print("Getting embeddings from wordlist")
-        word_dictionary : dict = dict.fromkeys(wordlist)
+        word_dictionary : dict = dict.fromkeys(wordlist, None)
         vocab_size = len(word_dictionary) + 1
         embedding_matrix_vocab = np.zeros((
             vocab_size, self.embedding_dimension
