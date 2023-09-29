@@ -1,0 +1,87 @@
+glove.42B.300d.txt
+glove.42B.300d.zip
+*.3gpp
+*.mp4
+mini-model/vosk-model-small-en-us-0.15.zip
+mini-model/vosk-model-small-en-us-0.15/am/final.mdl
+mini-model/vosk-model-small-en-us-0.15/conf/mfcc.conf
+mini-model/vosk-model-small-en-us-0.15/conf/model.conf
+mini-model/vosk-model-small-en-us-0.15/graph/disambig_tid.int
+mini-model/vosk-model-small-en-us-0.15/ivector/final.dubm
+mini-model/vosk-model-small-en-us-0.15/graph/phones/word_boundary.int
+mini-model/vosk-model-small-en-us-0.15/graph/HCLr.fst
+mini-model/vosk-model-small-en-us-0.15/graph/Gr.fst
+mini-model/vosk-model-small-en-us-0.15/ivector/final.ie
+mini-model/vosk-model-small-en-us-0.15/README
+mini-model/vosk-model-small-en-us-0.15/ivector/splice.conf
+mini-model/vosk-model-small-en-us-0.15/ivector/online_cmvn.conf
+mini-model/vosk-model-small-en-us-0.15/ivector/global_cmvn.stats
+mini-model/vosk-model-small-en-us-0.15/ivector/final.mat
+mini-model/__pycache__/helpers.cpython-310.pyc
+*.jpg
+*.wav
+mini-model/vosk-model-en-us-0.22/rnnlm/word_feats.txt
+mini-model/vosk-model-en-us-0.22/rnnlm/special_symbol_opts.txt
+mini-model/vosk-model-en-us-0.22/rnnlm/special_symbol_opts.conf
+mini-model/vosk-model-en-us-0.22/rnnlm/final.raw
+mini-model/vosk-model-en-us-0.22/rnnlm/feat_embedding.final.mat
+mini-model/vosk-model-en-us-0.22/rescore/G.fst
+mini-model/vosk-model-en-us-0.22/rescore/G.carpa
+mini-model/vosk-model-en-us-0.22/README
+mini-model/vosk-model-en-us-0.22/ivector/splice.conf
+mini-model/vosk-model-en-us-0.22/ivector/online_cmvn.conf
+mini-model/vosk-model-en-us-0.22/ivector/global_cmvn.stats
+mini-model/vosk-model-en-us-0.22/ivector/final.mat
+mini-model/vosk-model-en-us-0.22/ivector/final.ie
+mini-model/vosk-model-en-us-0.22/ivector/final.dubm
+mini-model/vosk-model-en-us-0.22/graph/words.txt
+mini-model/vosk-model-en-us-0.22/graph/phones/word_boundary.txt
+mini-model/vosk-model-en-us-0.22/graph/phones/word_boundary.int
+mini-model/vosk-model-en-us-0.22/graph/phones/silence.csl
+mini-model/vosk-model-en-us-0.22/graph/phones/optional_silence.txt
+mini-model/vosk-model-en-us-0.22/graph/phones/optional_silence.int
+mini-model/vosk-model-en-us-0.22/graph/phones/optional_silence.csl
+mini-model/vosk-model-en-us-0.22/graph/phones/disambig.txt
+mini-model/vosk-model-en-us-0.22/graph/phones/disambig.int
+mini-model/vosk-model-en-us-0.22/graph/phones/align_lexicon.txt
+mini-model/vosk-model-en-us-0.22/graph/phones/align_lexicon.int
+mini-model/vosk-model-en-us-0.22/graph/phones.txt
+mini-model/vosk-model-en-us-0.22/graph/num_pdfs
+mini-model/vosk-model-en-us-0.22/graph/HCLG.fst
+mini-model/vosk-model-en-us-0.22/graph/disambig_tid.int
+mini-model/vosk-model-en-us-0.22/conf/model.conf
+mini-model/vosk-model-en-us-0.22/conf/mfcc.conf
+mini-model/vosk-model-en-us-0.22/conf/ivector.conf
+mini-model/vosk-model-en-us-0.22/am/tree
+mini-model/vosk-model-en-us-0.22/am/final.mdl
+mini-model/vosk-model-en-us-0.22.zip
+mini-model/glove.6B.50d.txt
+glove.6B/glove.6B.300d.txt
+glove.6B/glove.6B.200d.txt
+glove.6B/glove.6B.100d.txt
+glove.6B/glove.6B.50d.txt
+*.vtt
+yt-captions/youtube_audit_dataset_unique.csv
+yt-captions/subs/yG_ICvh6tRs.json
+yt-captions/subs/vBuF6aN2mvs.json
+yt-captions/subs/V_F2-pDPewE.json
+yt-captions/subs/UgRHZ5jDPUU.json
+yt-captions/subs/QVl4StXPoSken..part
+yt-captions/subs/oWRU-sj_wbU.json
+yt-captions/subs/HfDB0OyJi4E.json
+yt-captions/subs/Fhme4x85yP0.json
+yt-captions/subs/dpEQOAo-rwM.json
+yt-captions/subs/At0-Gp_LU8c.json
+yt-captions/subs/2vxdeqN6Yp0.json
+yt-captions/subs - Copy/yG_ICvh6tRs.live_chat.json
+yt-captions/subs - Copy/vBuF6aN2mvs.live_chat.json
+yt-captions/subs - Copy/V_F2-pDPewE.live_chat.json
+yt-captions/subs - Copy/UgRHZ5jDPUU.live_chat.json
+yt-captions/subs - Copy/QVl4StXPoSk.en.vtt.part
+yt-captions/subs - Copy/oWRU-sj_wbU.live_chat.json
+yt-captions/subs - Copy/HfDB0OyJi4E.live_chat.json
+yt-captions/subs - Copy/Fhme4x85yP0.live_chat.json
+yt-captions/subs - Copy/dpEQOAo-rwM.live_chat.json
+yt-captions/subs - Copy/At0-Gp_LU8c.live_chat.json
+yt-captions/subs - Copy/2vxdeqN6Yp0.live_chat.json
+*.webp
